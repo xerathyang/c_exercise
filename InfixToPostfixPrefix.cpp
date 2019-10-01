@@ -22,17 +22,17 @@ class Stack{
 };
 template <class T>
 Stack<T>::Stack(int stackCapacity) : capacity(stackCapacity){
-    if(capacity<1)
-        throw "Stack capacity must be >0";
+    //if(capacity<1)
+    //    throw "Stack capacity must be >0";
     stack = new T[capacity];
     top = -1;
 }
 template <class T>
-inline bool Stack<T>::empty() const { return top == -1; }
+bool Stack<T>::empty() const { return top == -1; }
 template <class T>
-inline T& Stack<T>::Top() const{
-    if(empty())
-        throw "Stack is empty";
+T& Stack<T>::Top() const{
+    //if(empty())
+    //    throw "Stack is empty";
     return stack[top];
 }
 template <class T>
@@ -50,9 +50,9 @@ void Stack<T>::push(const T& item){
 }
 template <class T>
 void Stack<T>::pop(){
-    if(empty())
-        throw "Stack is empty. Cannot delete";
-    stack[top--].~T();
+    //if(empty())
+    //    throw "Stack is empty. Cannot delete";
+    top--;
 }
 
 int main(){
