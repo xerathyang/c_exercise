@@ -10,6 +10,7 @@ class Matrix;
 class Node{
     friend class Matrix;
     friend istream &operator>>(istream &is, Matrix &m);
+    friend ostream &operator<<(ostream &, const Matrix &);
     private:
         Node *down, *right; //to next node
         bool head;  //is header?
@@ -30,6 +31,7 @@ Node::Node(bool b, triple *t){
 
 class Matrix{
     friend istream &operator>>(istream &, Matrix &);
+    friend ostream &operator<<(ostream &, const Matrix &);
     public:
         Matrix(const Matrix &a);
         const Matrix &operator=(const Matrix &a);
@@ -78,7 +80,19 @@ istream &operator>>(istream &is, Matrix &m){
 };
 
 ostream &operator<<(ostream &os, const Matrix &m){
-
+    Node *curRow = m.headnode->next;
+    Node *curNode;
+    while(curRow!=m.headnode){
+        curNode = curRow->right;
+        while(curNode!=curRow){
+            os << curNode->Triple.row << ' ' 
+            << curNode->Triple.col << ' ' 
+            << curNode->Triple.value << endl;
+            curNode = curNode->right;
+        }
+        curRow = curRow->next;
+    }
+    return os;
 };
 
 Matrix::Matrix(const Matrix &a){
@@ -86,14 +100,14 @@ Matrix::Matrix(const Matrix &a){
 };
 
 const Matrix &Matrix::operator=(const Matrix &a){
-
+    return *this;
 };
 
 Matrix::~Matrix(){
     if(!headnode)
         return;
     Node *x = headnode->right;
-    Node *av;
+    static Node *av;
     headnode->right = av;
     av = headnode;
     while(x!=headnode){
@@ -106,19 +120,52 @@ Matrix::~Matrix(){
 };
 
 Matrix Matrix::operator+(const Matrix &b){
+    Node *beP = this->headnode->next;
+    Node *toP = b.headnode->next;
+    Node *ptr,*temp;
+    while(toP!=b.headnode){
+        if(beP->right->Triple.row==toP->right->Triple.row
+        &&beP->right->Triple.col==toP->right->Triple.col){
+            //row and col are same
+            //value
+            beP->right->Triple.value += toP->right->Triple.value;
+        }else if(beP->right->Triple.row<toP->right->Triple.row){
+            //row of toP is bigger than row of beP
+            beP = beP->next;
+            continue;
+        }else if(beP->right->Triple.col>toP->right->Triple.col){
+            //toP's col is smaller than beP's col
+            //add node
+            for (int i = 0; i < toP->right->Triple.col;i++)
+                ptr = this->headnode->next;
+                //move ptr to correct col
+            triple ans = toP -> right->Triple;
+            //get toP's triple
+            temp = beP;
+            temp->right = beP->right;
+            beP->right = new Node(false, &ans);
+            //create new node
+            beP->right->right = temp->right;
+            if(ptr->next->down->Triple.row!=beP->right->Triple.row)
+            ptr->next->down = beP->right;
+        }else if(beP->right->Triple.col<toP->right->Triple.col){
 
+        }
+        toP = toP->next;
+    }
+    return *this;
 };
 
 Matrix Matrix::operator-(const Matrix &b){
-
+    return *this;
 };
 
 Matrix Matrix::operator*(const Matrix &b){
-
+    return *this;
 };
 
 Matrix Matrix::transpost(){
-
+    return *this;
 };
 
 int main(){
