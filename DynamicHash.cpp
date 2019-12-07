@@ -2,50 +2,100 @@
 //
 
 #include <iostream>
-#include <vector>
 #include <math.h>
 
 using namespace std;
+
+void doublearr(char**, int);
+int hashing(char*, int);
 
 class dynhash {
 public:
 	void put(char*);
 	void get(int);
-	void colre(int,char*,int);
+	void collact(int,char*);
+	dynhash();
 private:
-	int size;
+	int size=2;
+	int curr=2;
 	char **arr = new char* [8];
 };
 
 dynhash::dynhash() {
-	size = 2;
+	curr = 2;
+	size = 8;
 	for (int i = 0; i < 8; i++) {
 		arr[i] = 0;
 	}
 }
 
-void dynhash::colre(int index, char* key,int curr) {
-	int point = index;
+//collide reaction
+void dynhash::collact(int index, char* key) {
+	char* cache = new char[2];
+	curr++;
+	//double array size
 	doublearr(arr, size);
 	size *= 2;
-	if (hashing(arr[index], curr+1) != index) {
-		
+	//new key's index
+	int keysite = hashing(key, curr);
+	//new array's index
+	int site1 = hashing(arr[index * 2], curr);//here
+	int site2 = hashing(arr[index * 2 + 1], curr);
+	//compare key's and array's index
+	//if array's index not fit current index, move to right place
+	if (keysite==index) {
+		//site1 is not fit
+		if (site1 != index) {
+			//swap with key
+			cache[0] = arr[index * 2][0];
+			cache[1] = arr[index * 2][1];
+			arr[index * 2][0] = key[0];
+			arr[index * 2][1] = key[1];
+			put(cache);
+		}
+		//site2 is not fit
+		else if (site2 != index) {
+			//swap with key
+			cache[0] = arr[index * 2 + 1][0];
+			cache[1] = arr[index * 2 + 1][1];
+			arr[index * 2 + 1][0] = key[0];
+			arr[index * 2 + 1][1] = key[1];
+			put(cache);
+		}
+		//all fit, need additional bit
+		else {
+			collact(index,key);
+		}
+	}
+	//key's index not fit current index
+	else {
+		put(key);
 	}
 }
 
 void dynhash::put(char* key) {
-	int curr = 2;
-	int index = hashing(key, curr);
-	if (arr[index] != 0) {
-		if (arr[index + 1] != 0) {
-			colre(index,key,curr);
+	char* input= new char[2];
+	input[0] = key[0];
+	input[1] = key[1];
+	//get index by hash
+	int index = hashing(input, curr);
+	//first is full
+	if (arr[index*2] != 0) {
+		//second is full
+		if (arr[index*2 + 1] != 0) {
+			//collide
+			collact(index,key);
 		}
 		else {
-			arr[index + 1] = key;
+			//second is empty, put in
+			arr[index*2 + 1] = input;
+			cout << index << endl;
 		}
 	}
 	else {
-		arr[index] = key;
+		//first is empty, put in
+		arr[index*2] = input;
+		cout << index << endl;
 	}
 }
 
@@ -54,14 +104,14 @@ void dynhash::get(int index) {
 		cout << "Out of range." << endl;
 		return;
 	}
-	if (arr[index] != 0) {
-		cout << arr[index] << " ";
-		if (arr[index + 1] != 0) {
-			cout << arr[index + 1] << endl;
+	if (arr[index*2] != 0) {
+		cout << arr[index * 2][0] << arr[index * 2][1] << " ";
+		if (arr[index*2 + 1] != 0) {
+			cout << arr[index*2 + 1][0] << arr[index * 2 + 1][1] << endl;
 		}
 	}
-	else if(arr[index+1]!=0){
-		cout << arr[index + 1] << endl;
+	else if(arr[index*2 + 1]!=0){
+		cout << arr[index*2 + 1][0] << arr[index * 2 + 1][1] << endl;
 	}
 	else {
 		cout << "The bucket is empty." << endl;
@@ -69,13 +119,11 @@ void dynhash::get(int index) {
 }
 
 void doublearr(char** a,int size) {
-	int pre = size;
-	size *= 2;
-	char **b = new char* [size];
-	for (int i = 0; i < size; i++) {
+	char **b = new char* [size*2];
+	for (int i = 0; i < size*2; i++) {
 		b[i] = 0;
 	}
-	for (int i = 0; i < pre; i++) {
+	for (int i = 0; i < size; i++) {
 		b[i] = a[i];
 	}
 	a = b;
@@ -84,25 +132,31 @@ void doublearr(char** a,int size) {
 int hashing(char* in,int length) {
 	int ans = 0;
 	int r = 0;
-	int l = 100000;
-	switch (in[0]) {
+	int l = (int)pow(10,length);
+	switch (in[0]) {//here
 	case 'A':
 		ans += 100000;
+		break;
 	case 'B':
 		ans += 101000;
+		break;
 	case 'C':
 		ans += 110000;
+		break;
 	case 'D':
 		ans += 111000;
+		break;
 	}
-	ans = ans + (in[1] % 2);
-	ans = ans + (in[1] % 2)*10;
-	ans = ans + (in[1] % 2)*100;
-	for (int i = length; i > 0; i--) {
-		ans = ans % l;
-		l /= 10;
-	}
-	for (int i = 0; ans > 0; i++) {
+	int num = in[1];
+	ans = ans + (num % 2);
+	num /= 2;
+	ans = ans + (num % 2)*10;
+	num /= 2;
+	ans = ans + (num % 2)*100;
+	
+	ans = ans % l;
+
+	for (int i = 0; ans != 0; i++) {
 		r += (int)pow(2, i)*(ans%10);
 		ans /= 10;
 	}
@@ -121,11 +175,15 @@ int main()
 			cin >> input >> input;
 			cin >> key;
 			a.put(key);
+			break;
 		case 'g':
 			cin >> input >> input;
 			cin >> index;
+			a.get(index);
+			break;
 		case 'e':
 			cin >> input >> input >> input;
+			exit(0);
 		}
 	}
 }
