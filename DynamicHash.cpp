@@ -11,26 +11,27 @@ int hashing(char*, int);
 
 class dynhash {
 public:
-	void put(char*);
+	void put(char*, bool);
 	void get(int);
-	void collact(int,char*);
+	void collact(int, char*);
 	dynhash();
 private:
-	int size=2;
-	int curr=2;
-	char **arr = new char* [8];
+	int size = 2;
+	int curr = 2;
+	char** arr = new char* [8];
 };
 
 dynhash::dynhash() {
 	curr = 2;
 	size = 8;
 	for (int i = 0; i < 8; i++) {
-		arr[i] = 0;
+		arr[i] = NULL;
 	}
 }
 
 //collide reaction
 void dynhash::collact(int index, char* key) {
+	//system("pause");
 	char* cache = new char[2];
 	curr++;
 	//double array size
@@ -43,7 +44,7 @@ void dynhash::collact(int index, char* key) {
 	int site2 = hashing(arr[index * 2 + 1], curr);
 	//compare key's and array's index
 	//if array's index not fit current index, move to right place
-	if (keysite==index) {
+	if (keysite == index) {
 		//site1 is not fit
 		if (site1 != index) {
 			//swap with key
@@ -51,7 +52,17 @@ void dynhash::collact(int index, char* key) {
 			cache[1] = arr[index * 2][1];
 			arr[index * 2][0] = key[0];
 			arr[index * 2][1] = key[1];
-			put(cache);
+			if (arr[site1 * 2] == NULL) {
+				arr[site1 * 2] = new char[2];
+				arr[site1 * 2][0] = cache[0];
+				arr[site1 * 2][1] = cache[1];
+			}
+			else {
+				arr[site1 * 2 + 1] = new char[2];
+				arr[site1 * 2 + 1][0] = cache[0];
+				arr[site1 * 2 + 1][1] = cache[1];
+			}
+			cout << keysite << endl;
 		}
 		//site2 is not fit
 		else if (site2 != index) {
@@ -60,68 +71,99 @@ void dynhash::collact(int index, char* key) {
 			cache[1] = arr[index * 2 + 1][1];
 			arr[index * 2 + 1][0] = key[0];
 			arr[index * 2 + 1][1] = key[1];
-			put(cache);
+			cout << keysite << endl;
+			if (arr[site2 * 2] == NULL) {
+				arr[site2 * 2] = new char[2];
+				arr[site2 * 2][0] = cache[0];
+				arr[site2 * 2][1] = cache[1];
+				//cout << &arr[site2 * 2] << endl;
+			}
+			else {
+				arr[site2 * 2 + 1] = new char[2];
+				arr[site2 * 2 + 1][0] = cache[0];
+				arr[site2 * 2 + 1][1] = cache[1];
+				//cout << &arr[site2 * 2 + 1] << endl;
+			}
 		}
 		//all fit, need additional bit
 		else {
-			collact(index,key);
+			collact(index, key);
 		}
 	}
 	//key's index not fit current index
 	else {
-		put(key);
+		put(key, 1);
 	}
+	delete[] cache;
 }
 
-void dynhash::put(char* key) {
-	char* input= new char[2];
+void dynhash::put(char* key, bool show) {
+	char* input = new char[2];
 	input[0] = key[0];
 	input[1] = key[1];
 	//get index by hash
 	int index = hashing(input, curr);
 	//first is full
-	if (arr[index*2] != 0) {
+	if (arr[index * 2] != NULL) {
 		//second is full
-		if (arr[index*2 + 1] != 0) {
+		//cout << arr[index * 2] << endl;
+		if (arr[index * 2 + 1] != NULL) {
 			//collide
-			collact(index,key);
+			//cout << arr[index * 2+1][0] << arr[index * 2+1][1] << endl;
+			collact(index, key);
 		}
 		else {
 			//second is empty, put in
-			arr[index*2 + 1] = input;
-			cout << index << endl;
+			arr[index * 2 + 1] = input;
+			if (show == 1)
+				cout << index << endl;
+			//cout << &arr[index * 2 + 1] << endl;
 		}
 	}
 	else {
 		//first is empty, put in
-		arr[index*2] = input;
-		cout << index << endl;
+		arr[index * 2] = input;
+		if (show == 1)
+			cout << index << endl;
+		//cout << &arr[index * 2] << endl;
 	}
+
 }
 
 void dynhash::get(int index) {
-	if (index > size) {
+	if (index * 2 > size) {
 		cout << "Out of range." << endl;
 		return;
 	}
-	if (arr[index*2] != 0) {
+
+	if (arr[index * 2] != NULL) {
 		cout << arr[index * 2][0] << arr[index * 2][1] << " ";
-		if (arr[index*2 + 1] != 0) {
-			cout << arr[index*2 + 1][0] << arr[index * 2 + 1][1] << endl;
+		if (arr[index * 2 + 1] != 0) {
+			cout << arr[index * 2 + 1][0] << arr[index * 2 + 1][1] << endl;
 		}
+		else {
+			cout << endl;
+		}
+		return;
 	}
-	else if(arr[index*2 + 1]!=0){
-		cout << arr[index*2 + 1][0] << arr[index * 2 + 1][1] << endl;
+	else if (arr[index * 2 + 1] != NULL) {
+		cout << arr[index * 2 + 1][0] << arr[index * 2 + 1][1] << endl;
+		return;
 	}
 	else {
+		if ((index * 2) >= 8) {
+			this->get(index * 2 % 4);
+			return;
+		}
 		cout << "The bucket is empty." << endl;
+		return;
 	}
 }
 
-void doublearr(char** a,int size) {
-	char **b = new char* [size*2];
-	for (int i = 0; i < size*2; i++) {
-		b[i] = 0;
+void doublearr(char** a, int size) {
+	char** b = new char* [size * 2];
+	for (int i = 0; i < size * 2; i++) {
+		b[i] = NULL;
 	}
 	for (int i = 0; i < size; i++) {
 		b[i] = a[i];
@@ -129,10 +171,10 @@ void doublearr(char** a,int size) {
 	a = b;
 }
 
-int hashing(char* in,int length) {
+int hashing(char* in, int length) {
 	int ans = 0;
 	int r = 0;
-	int l = (int)pow(10,length);
+	int l = (int)pow(10, length);
 	switch (in[0]) {//here
 	case 'A':
 		ans += 100000;
@@ -150,14 +192,14 @@ int hashing(char* in,int length) {
 	int num = in[1];
 	ans = ans + (num % 2);
 	num /= 2;
-	ans = ans + (num % 2)*10;
+	ans = ans + (num % 2) * 10;
 	num /= 2;
-	ans = ans + (num % 2)*100;
-	
+	ans = ans + (num % 2) * 100;
+
 	ans = ans % l;
 
 	for (int i = 0; ans != 0; i++) {
-		r += (int)pow(2, i)*(ans%10);
+		r += (int)pow(2, i) * (ans % 10);
 		ans /= 10;
 	}
 	return r;
@@ -174,7 +216,7 @@ int main()
 		case 'p':
 			cin >> input >> input;
 			cin >> key;
-			a.put(key);
+			a.put(key, 1);
 			break;
 		case 'g':
 			cin >> input >> input;
@@ -187,14 +229,3 @@ int main()
 		}
 	}
 }
-
-// 執行程式: Ctrl + F5 或 [偵錯] > [啟動但不偵錯] 功能表
-// 偵錯程式: F5 或 [偵錯] > [啟動偵錯] 功能表
-
-// 開始使用的提示: 
-//   1. 使用 [方案總管] 視窗，新增/管理檔案
-//   2. 使用 [Team Explorer] 視窗，連線到原始檔控制
-//   3. 使用 [輸出] 視窗，參閱組建輸出與其他訊息
-//   4. 使用 [錯誤清單] 視窗，檢視錯誤
-//   5. 前往 [專案] > [新增項目]，建立新的程式碼檔案，或是前往 [專案] > [新增現有項目]，將現有程式碼檔案新增至專案
-//   6. 之後要再次開啟此專案時，請前往 [檔案] > [開啟] > [專案]，然後選取 .sln 檔案
