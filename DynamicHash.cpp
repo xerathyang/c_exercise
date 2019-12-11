@@ -1,3 +1,6 @@
+﻿// DynamicHash.cpp : 此檔案包含 'main' 函式。程式會於該處開始執行及結束執行。
+//
+
 #include <iostream>
 #include <math.h>
 
@@ -7,14 +10,15 @@ int hashing(char*, int);
 
 class dynhash {
 public:
-	void put(char*, bool, int);
+	void put(char*, bool, int, bool);
 	void get(int);
-	void collact(int, char*,int);
+	void collact(int, char*);
 	char** doublearr(char**, int);
 	dynhash();
 private:
 	int size = 2;
 	int curr = 2;
+	int pos = 2;
 	char** arr = new char* [8];
 };
 
@@ -29,65 +33,78 @@ dynhash::dynhash() {
 }
 
 //collide reaction
-void dynhash::collact(int index, char* key,int place) {
+void dynhash::collact(int index, char* key) {
 	char* cache = new char[2];
+	curr++;
+	if (curr > pos) {
+		//double array size
+		arr = doublearr(arr, size);
+		size *= 2;
+	}
 	//new key's index
-	int keysite = hashing(key, place);
+	int keysite = hashing(key, curr);
 	//new array's index
-	int site1 = hashing(arr[index * 2], place);//here
-	int site2 = hashing(arr[index * 2 + 1], place);
+	int site1 = hashing(arr[index * 2], curr);//here
+	int site2 = hashing(arr[index * 2 + 1], curr);
 	//compare key's and array's index
 	//if array's index not fit current index, move to right place
 	if (keysite == index) {
 		//site1 is not fit
 		if (site1 != index) {
-			curr++;
-			//double array size
-			arr = doublearr(arr, place);
 			//swap with key
 			cache[0] = arr[index * 2][0];
 			cache[1] = arr[index * 2][1];
 			arr[index * 2][0] = key[0];
 			arr[index * 2][1] = key[1];
 			if (arr[site1 * 2][0] == 'N') {
-				put(cache, 0, 2);
+				arr[site1 * 2] = new char[2];
+				arr[site1 * 2][0] = cache[0];
+				arr[site1 * 2][1] = cache[1];
+				//put(cache, 0, 2, 1);
 			}
 			else {
-				put(cache, 0, 2);
+				arr[site1 * 2 + 1] = new char[2];
+				arr[site1 * 2 + 1][0] = cache[0];
+				arr[site1 * 2 + 1][1] = cache[1];
+				//put(cache, 0, 2, 1);
 			}
 			cout << index << endl;
 		}
 		//site2 is not fit
 		else if (site2 != index) {
-			curr++;
-			//double array size
-			arr = doublearr(arr, place);
 			//swap with key
 			cache[0] = arr[index * 2 + 1][0];
 			cache[1] = arr[index * 2 + 1][1];
 			arr[index * 2 + 1][0] = key[0];
 			arr[index * 2 + 1][1] = key[1];
 			if (arr[site2 * 2][0] == 'N') {
-				put(cache, 0, 2);
+				arr[site2 * 2] = new char[2];
+				arr[site2 * 2][0] = cache[0];
+				arr[site2 * 2][1] = cache[1];
+				//put(cache, 0, 2, 1);
 			}
 			else {
-				put(cache, 0, 2);
+				arr[site2 * 2 + 1] = new char[2];
+				arr[site2 * 2 + 1][0] = cache[0];
+				arr[site2 * 2 + 1][1] = cache[1];
+				//put(cache, 0, 2, 1);
 			}
 			cout << index << endl;
 		}
 		//all fit, need additional bit
 		else {
-			collact(index, key, place+1);
+			collact(index, key);
 		}
 	}
 	//key's index not fit current index
 	else {
-		put(key, 1, 2);
+		put(key, 1, curr, 1);
 	}
 	delete[] cache;
 }
 
-void dynhash::put(char* key, bool show, int place) {
+void dynhash::put(char* key, bool show, int place, bool col) {
+	curr = 2;
 	char* input = new char[2];
 	input[0] = key[0];
 	input[1] = key[1];
@@ -97,7 +114,20 @@ void dynhash::put(char* key, bool show, int place) {
 	if (arr[index * 2][0] != 'N') {
 		//second is full
 		if (arr[index * 2 + 1][0] != 'N') {
-			collact(index, key, 2);
+			//collact(index, key);
+			//if (col == 0) {
+			//	put(key, show, place + 1, 1);
+			//	return;
+			//}
+
+			if (place<curr) {
+				put(key, show, place + 1, 1);
+			}
+			else {
+				//collide
+				collact(index, key);
+			}
+
 		}
 		else {
 			//second is empty, put in
@@ -111,6 +141,7 @@ void dynhash::put(char* key, bool show, int place) {
 		arr[index * 2] = input;
 		if (show == 1)
 			cout << index << endl;
+		//cout << &arr[index * 2] << endl;
 	}
 
 }
@@ -136,8 +167,8 @@ void dynhash::get(int index) {
 		return;
 	}
 	else {
-		if ((index - (int)pow(2, curr - 1)) >= 0) {
-			this->get(index - (int)pow(2, curr - 1));
+		if ((index - (int)pow(2, pos - 1)) >= 0) {
+			this->get(index - (int)pow(2, pos - 1));
 			return;
 		}
 		else if (index >= 4) {
@@ -149,9 +180,8 @@ void dynhash::get(int index) {
 	}
 }
 
-char** dynhash::doublearr(char** a, int time) {
-	curr++;
-	size *= 2;
+char** dynhash::doublearr(char** a, int size) {
+	pos++;
 	char** b = new char* [size * 2];
 	for (int i = 0; i < size * 2; i++) {
 		b[i] = new char[2];
@@ -160,10 +190,7 @@ char** dynhash::doublearr(char** a, int time) {
 	for (int i = 0; i < size; i++) {
 		b[i] = a[i];
 	}
-	if (time > curr)
-		arr = doublearr(arr, time + 1);
-	else
-		return b;
+	return b;
 }
 
 int hashing(char* in, int length) {
@@ -211,7 +238,7 @@ int main()
 		case 'p':
 			cin >> input >> input;
 			cin >> key;
-			a.put(key, 1, 2);
+			a.put(key, 1, 2, 0);
 			break;
 		case 'g':
 			cin >> input >> input;
@@ -224,3 +251,14 @@ int main()
 		}
 	}
 }
+
+// 執行程式: Ctrl + F5 或 [偵錯] > [啟動但不偵錯] 功能表
+// 偵錯程式: F5 或 [偵錯] > [啟動偵錯] 功能表
+
+// 開始使用的提示: 
+//   1. 使用 [方案總管] 視窗，新增/管理檔案
+//   2. 使用 [Team Explorer] 視窗，連線到原始檔控制
+//   3. 使用 [輸出] 視窗，參閱組建輸出與其他訊息
+//   4. 使用 [錯誤清單] 視窗，檢視錯誤
+//   5. 前往 [專案] > [新增項目]，建立新的程式碼檔案，或是前往 [專案] > [新增現有項目]，將現有程式碼檔案新增至專案
+//   6. 之後要再次開啟此專案時，請前往 [檔案] > [開啟] > [專案]，然後選取 .sln 檔案
