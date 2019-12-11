@@ -1,4 +1,4 @@
-ï»¿// DynamicHash.cpp : æ­¤æª”æ¡ˆåŒ…å« 'main' å‡½å¼ã€‚ç¨‹å¼æœƒæ–¼è©²è™•é–‹å§‹åŸ·è¡ŒåŠçµæŸåŸ·è¡Œã€‚
+// DynamicHash.cpp : ¦¹ÀÉ®×¥]§t 'main' ¨ç¦¡¡Cµ{¦¡·|©ó¸Ó³B¶}©l°õ¦æ¤Îµ²§ô°õ¦æ¡C
 //
 
 #include <iostream>
@@ -25,7 +25,7 @@ private:
 dynhash::dynhash() {
 	curr = 2;
 	size = 8;
-
+	pos = 2;
 	for (int i = 0; i < 8; i++) {
 		arr[i] = new char[2];
 		arr[i][0] = 'N';
@@ -57,13 +57,13 @@ void dynhash::collact(int index, char* key) {
 			arr[index * 2][0] = key[0];
 			arr[index * 2][1] = key[1];
 			if (arr[site1 * 2][0] == 'N') {
-				arr[site1 * 2] = new char[2];
+				//arr[site1 * 2] = new char[2];
 				arr[site1 * 2][0] = cache[0];
 				arr[site1 * 2][1] = cache[1];
 				//put(cache, 0, 2, 1);
 			}
 			else {
-				arr[site1 * 2 + 1] = new char[2];
+				//arr[site1 * 2 + 1] = new char[2];
 				arr[site1 * 2 + 1][0] = cache[0];
 				arr[site1 * 2 + 1][1] = cache[1];
 				//put(cache, 0, 2, 1);
@@ -78,16 +78,13 @@ void dynhash::collact(int index, char* key) {
 			arr[index * 2 + 1][0] = key[0];
 			arr[index * 2 + 1][1] = key[1];
 			if (arr[site2 * 2][0] == 'N') {
-				arr[site2 * 2] = new char[2];
 				arr[site2 * 2][0] = cache[0];
 				arr[site2 * 2][1] = cache[1];
 				//put(cache, 0, 2, 1);
 			}
 			else {
-				arr[site2 * 2 + 1] = new char[2];
 				arr[site2 * 2 + 1][0] = cache[0];
 				arr[site2 * 2 + 1][1] = cache[1];
-				//put(cache, 0, 2, 1);
 			}
 			cout << index << endl;
 		}
@@ -100,27 +97,18 @@ void dynhash::collact(int index, char* key) {
 	else {
 		put(key, 1, curr, 1);
 	}
-	delete[] cache;
 }
 
 void dynhash::put(char* key, bool show, int place, bool col) {
 	curr = 2;
-	char* input = new char[2];
-	input[0] = key[0];
-	input[1] = key[1];
 	//get index by hash
-	int index = hashing(input, place);
+	int index = hashing(key, place);
 	//first is full
 	if (arr[index * 2][0] != 'N') {
 		//second is full
 		if (arr[index * 2 + 1][0] != 'N') {
-			//collact(index, key);
-			//if (col == 0) {
-			//	put(key, show, place + 1, 1);
-			//	return;
-			//}
 
-			if (place<curr) {
+			if (place < curr) {
 				put(key, show, place + 1, 1);
 			}
 			else {
@@ -131,31 +119,32 @@ void dynhash::put(char* key, bool show, int place, bool col) {
 		}
 		else {
 			//second is empty, put in
-			arr[index * 2 + 1] = input;
+			arr[index * 2 + 1][0] = key[0];
+			arr[index * 2 + 1][1] = key[1];
 			if (show == 1)
 				cout << index << endl;
 		}
 	}
 	else {
 		//first is empty, put in
-		arr[index * 2] = input;
+		arr[index * 2][0] = key[0];
+		arr[index * 2][1] = key[1];
 		if (show == 1)
 			cout << index << endl;
-		//cout << &arr[index * 2] << endl;
 	}
 
 }
 
 void dynhash::get(int index) {
-	if (index * 2 > size) {
+	if (index * 2 >= size) {
 		cout << "Out of range." << endl;
 		return;
 	}
 
 	if (arr[index * 2][0] != 'N') {
-		cout << arr[index * 2][0] << arr[index * 2][1] << " ";
+		cout << arr[index * 2][0] << arr[index * 2][1];
 		if (arr[index * 2 + 1][0] != 'N') {
-			cout << arr[index * 2 + 1][0] << arr[index * 2 + 1][1] << endl;
+			cout << " " <<arr[index * 2 + 1][0] << arr[index * 2 + 1][1] << endl;
 		}
 		else {
 			cout << endl;
@@ -167,14 +156,32 @@ void dynhash::get(int index) {
 		return;
 	}
 	else {
-		if ((index - (int)pow(2, pos - 1)) >= 0) {
-			this->get(index - (int)pow(2, pos - 1));
+		if (index >= 4) {
+			int cache = index, reget = 0, point = 0;
+			for (int i = 0; cache > 0; i++) {
+				reget += (int)pow(10, i)*(cache%2);
+				cache /= 2;
+				point++;
+
+			}
+
+			reget %= (int)pow(10, point - 1);
+			cache = 0;
+			for (int i = 0; reget > 0; i++) {
+				cache += (int)pow(2, i)*(reget%10);
+				reget /= 10;
+			}
+			get(cache);
 			return;
 		}
-		else if (index >= 4) {
-			this->get(index % 4);
-			return;
-		}
+		//if ((index - (int)pow(2, pos - 1)) >= 0) {
+		//	this->get(index - (int)pow(2, pos - 1));
+		//	return;
+		//}
+		//else if (index >= 4) {
+		//	this->get(index % 4);
+		//	return;
+		//}
 		cout << "The bucket is empty." << endl;
 		return;
 	}
@@ -188,7 +195,8 @@ char** dynhash::doublearr(char** a, int size) {
 		b[i][0] = 'N';
 	}
 	for (int i = 0; i < size; i++) {
-		b[i] = a[i];
+		b[i][0] = a[i][0];
+		b[i][1] = a[i][1];
 	}
 	return b;
 }
@@ -237,7 +245,7 @@ int main()
 		switch (input) {
 		case 'p':
 			cin >> input >> input;
-			cin >> key;
+			cin >> key[0] >> key[1];
 			a.put(key, 1, 2, 0);
 			break;
 		case 'g':
@@ -252,13 +260,13 @@ int main()
 	}
 }
 
-// åŸ·è¡Œç¨‹å¼: Ctrl + F5 æˆ– [åµéŒ¯] > [å•Ÿå‹•ä½†ä¸åµéŒ¯] åŠŸèƒ½è¡¨
-// åµéŒ¯ç¨‹å¼: F5 æˆ– [åµéŒ¯] > [å•Ÿå‹•åµéŒ¯] åŠŸèƒ½è¡¨
+// °õ¦æµ{¦¡: Ctrl + F5 ©Î [°»¿ù] > [±Ò°Ê¦ı¤£°»¿ù] ¥\¯àªí
+// °»¿ùµ{¦¡: F5 ©Î [°»¿ù] > [±Ò°Ê°»¿ù] ¥\¯àªí
 
-// é–‹å§‹ä½¿ç”¨çš„æç¤º: 
-//   1. ä½¿ç”¨ [æ–¹æ¡ˆç¸½ç®¡] è¦–çª—ï¼Œæ–°å¢/ç®¡ç†æª”æ¡ˆ
-//   2. ä½¿ç”¨ [Team Explorer] è¦–çª—ï¼Œé€£ç·šåˆ°åŸå§‹æª”æ§åˆ¶
-//   3. ä½¿ç”¨ [è¼¸å‡º] è¦–çª—ï¼Œåƒé–±çµ„å»ºè¼¸å‡ºèˆ‡å…¶ä»–è¨Šæ¯
-//   4. ä½¿ç”¨ [éŒ¯èª¤æ¸…å–®] è¦–çª—ï¼Œæª¢è¦–éŒ¯èª¤
-//   5. å‰å¾€ [å°ˆæ¡ˆ] > [æ–°å¢é …ç›®]ï¼Œå»ºç«‹æ–°çš„ç¨‹å¼ç¢¼æª”æ¡ˆï¼Œæˆ–æ˜¯å‰å¾€ [å°ˆæ¡ˆ] > [æ–°å¢ç¾æœ‰é …ç›®]ï¼Œå°‡ç¾æœ‰ç¨‹å¼ç¢¼æª”æ¡ˆæ–°å¢è‡³å°ˆæ¡ˆ
-//   6. ä¹‹å¾Œè¦å†æ¬¡é–‹å•Ÿæ­¤å°ˆæ¡ˆæ™‚ï¼Œè«‹å‰å¾€ [æª”æ¡ˆ] > [é–‹å•Ÿ] > [å°ˆæ¡ˆ]ï¼Œç„¶å¾Œé¸å– .sln æª”æ¡ˆ
+// ¶}©l¨Ï¥Îªº´£¥Ü: 
+//   1. ¨Ï¥Î [¤è®×Á`ºŞ] µøµ¡¡A·s¼W/ºŞ²zÀÉ®×
+//   2. ¨Ï¥Î [Team Explorer] µøµ¡¡A³s½u¨ì­ì©lÀÉ±±¨î
+//   3. ¨Ï¥Î [¿é¥X] µøµ¡¡A°Ñ¾\²Õ«Ø¿é¥X»P¨ä¥L°T®§
+//   4. ¨Ï¥Î [¿ù»~²M³æ] µøµ¡¡AÀËµø¿ù»~
+//   5. «e©¹ [±M®×] > [·s¼W¶µ¥Ø]¡A«Ø¥ß·sªºµ{¦¡½XÀÉ®×¡A©Î¬O«e©¹ [±M®×] > [·s¼W²{¦³¶µ¥Ø]¡A±N²{¦³µ{¦¡½XÀÉ®×·s¼W¦Ü±M®×
+//   6. ¤§«á­n¦A¦¸¶}±Ò¦¹±M®×®É¡A½Ğ«e©¹ [ÀÉ®×] > [¶}±Ò] > [±M®×]¡AµM«á¿ï¨ú .sln ÀÉ®×
