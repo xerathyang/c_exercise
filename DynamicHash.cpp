@@ -35,8 +35,13 @@ dynhash::dynhash() {
 //collide reaction
 void dynhash::collact(int index, char* key) {
 	char* cache = new char[2];
+	char* cache1 = new char[2];
 	curr++;
-	if (curr > pos) {
+	if (curr < pos) {
+		put(key, 1, curr, 1);
+		return;
+	}
+	if (curr >= pos) {
 		//double array size
 		arr = doublearr(arr, size);
 		size *= 2;
@@ -57,17 +62,22 @@ void dynhash::collact(int index, char* key) {
 			arr[index * 2][0] = key[0];
 			arr[index * 2][1] = key[1];
 			if (arr[site1 * 2][0] == 'N') {
-				//arr[site1 * 2] = new char[2];
 				arr[site1 * 2][0] = cache[0];
 				arr[site1 * 2][1] = cache[1];
-				//put(cache, 0, 2, 1);
 			}
-			else {
-				//arr[site1 * 2 + 1] = new char[2];
+			else if (arr[site1 * 2 + 1][0] == 'N') {
 				arr[site1 * 2 + 1][0] = cache[0];
 				arr[site1 * 2 + 1][1] = cache[1];
-				//put(cache, 0, 2, 1);
 			}
+			else {
+				cout << "wrong" << endl;
+			}
+			//if (site2 != index) {
+			//	arr[site2 * 2 + 1][0] = arr[index * 2 + 1][0];
+			//	arr[site2 * 2 + 1][1] = arr[index * 2 + 1][1];
+			//	arr[index * 2 + 1][0] = 'N';
+			//}
+			//cout << "p:" << curr << endl;
 			cout << index << endl;
 		}
 		//site2 is not fit
@@ -80,12 +90,15 @@ void dynhash::collact(int index, char* key) {
 			if (arr[site2 * 2][0] == 'N') {
 				arr[site2 * 2][0] = cache[0];
 				arr[site2 * 2][1] = cache[1];
-				//put(cache, 0, 2, 1);
 			}
-			else {
+			else if (arr[site2 * 2 + 1][0] == 'N') {
 				arr[site2 * 2 + 1][0] = cache[0];
 				arr[site2 * 2 + 1][1] = cache[1];
 			}
+			else {
+				cout << "wrong" << endl;
+			}
+			//cout << "p:" << curr << endl;
 			cout << index << endl;
 		}
 		//all fit, need additional bit
@@ -95,27 +108,29 @@ void dynhash::collact(int index, char* key) {
 	}
 	//key's index not fit current index
 	else {
-		put(key, 1, curr, 1);
+		if (arr[keysite * 2][0] == 'N') {
+			arr[keysite * 2][0] = key[0];
+			arr[keysite * 2][1] = key[1];
+		}
+		else if (arr[keysite * 2 + 1][0] == 'N') {
+			arr[keysite * 2 + 1][0] = key[0];
+			arr[keysite * 2 + 1][1] = key[1];
+		}
+		cout << keysite << endl;
 	}
 }
 
 void dynhash::put(char* key, bool show, int place, bool col) {
-	curr = 2;
+	if (col == 0)
+		curr = 2;
 	//get index by hash
-	int index = hashing(key, place);
+	int index = hashing(key, curr);
 	//first is full
 	if (arr[index * 2][0] != 'N') {
 		//second is full
 		if (arr[index * 2 + 1][0] != 'N') {
 
-			if (place < curr) {
-				put(key, show, place + 1, 1);
-			}
-			else {
-				//collide
-				collact(index, key);
-			}
-
+			collact(index, key);
 		}
 		else {
 			//second is empty, put in
@@ -144,7 +159,7 @@ void dynhash::get(int index) {
 	if (arr[index * 2][0] != 'N') {
 		cout << arr[index * 2][0] << arr[index * 2][1];
 		if (arr[index * 2 + 1][0] != 'N') {
-			cout << " " <<arr[index * 2 + 1][0] << arr[index * 2 + 1][1] << endl;
+			cout << " " << arr[index * 2 + 1][0] << arr[index * 2 + 1][1] << endl;
 		}
 		else {
 			cout << endl;
@@ -159,7 +174,7 @@ void dynhash::get(int index) {
 		if (index >= 4) {
 			int cache = index, reget = 0, point = 0;
 			for (int i = 0; cache > 0; i++) {
-				reget += (int)pow(10, i)*(cache%2);
+				reget += (int)pow(10, i) * (cache % 2);
 				cache /= 2;
 				point++;
 
@@ -168,20 +183,12 @@ void dynhash::get(int index) {
 			reget %= (int)pow(10, point - 1);
 			cache = 0;
 			for (int i = 0; reget > 0; i++) {
-				cache += (int)pow(2, i)*(reget%10);
+				cache += (int)pow(2, i) * (reget % 10);
 				reget /= 10;
 			}
 			get(cache);
 			return;
 		}
-		//if ((index - (int)pow(2, pos - 1)) >= 0) {
-		//	this->get(index - (int)pow(2, pos - 1));
-		//	return;
-		//}
-		//else if (index >= 4) {
-		//	this->get(index % 4);
-		//	return;
-		//}
 		cout << "The bucket is empty." << endl;
 		return;
 	}
