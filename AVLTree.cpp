@@ -26,7 +26,7 @@ public:
     ~AVLtree(void);
     bool insert(T key);
     void deleteKey(const T key);
-    void printBalance();
+    void printer();
 
 private:
     AVLnode<T>* root;
@@ -38,7 +38,7 @@ private:
     void rebalance(AVLnode<T>* n);
     int height(AVLnode<T>* n);
     void setBalance(AVLnode<T>* n);
-    void printBalance(AVLnode<T>* n);
+    void printer(AVLnode<T>* n);
 
 };
 
@@ -47,16 +47,20 @@ void AVLtree<T>::rebalance(AVLnode<T>* n) {
     setBalance(n);
 
     if (n->balance == -2) {
-        if (height(n->left->left) >= height(n->left->right))
-            n = rotateRight(n);
-        else
+		if (height(n->left->left) >= height(n->left->right)) {
+			n = rotateRight(n);
+		}
+		else {
             n = rotateLeftThenRight(n);
+		}
     }
     else if (n->balance == 2) {
-        if (height(n->right->right) >= height(n->right->left))
+		if (height(n->right->right) >= height(n->right->left)) {
             n = rotateLeft(n);
-        else
+		}
+		else {
             n = rotateRightThenLeft(n);
+		}
     }
 
     if (n->parent != NULL) {
@@ -135,7 +139,7 @@ template <class T>
 int AVLtree<T>::height(AVLnode<T>* n) {
     if (n == NULL)
         return -1;
-    return 1 + std::max(height(n->left), height(n->right));
+    return 1 + max(height(n->left), height(n->right));
 }
 
 template <class T>
@@ -144,11 +148,13 @@ void AVLtree<T>::setBalance(AVLnode<T>* n) {
 }
 
 template <class T>
-void AVLtree<T>::printBalance(AVLnode<T>* n) {
+void AVLtree<T>::printer(AVLnode<T>* n) {
     if (n != NULL) {
-        std::cout << n->key << " ";
-        printBalance(n->left);
-        printBalance(n->right);
+		if (n != root)
+			cout << ",";
+        cout << n->key;
+        printer(n->left);
+        printer(n->right);
     }
 }
 
@@ -163,7 +169,7 @@ AVLtree<T>::~AVLtree(void) {
 template <class T>
 bool AVLtree<T>::insert(T key) {
     if (root == NULL) {
-        root = new AVLnode<T>(key, NULL);
+		root = new AVLnode<T>(key, NULL);
     }
     else {
         AVLnode<T>
@@ -186,7 +192,6 @@ bool AVLtree<T>::insert(T key) {
                 else {
                     parent->right = new AVLnode<T>(key, parent);
                 }
-
                 rebalance(parent);
                 break;
             }
@@ -214,32 +219,80 @@ void AVLtree<T>::deleteKey(const T delKey) {
         if (delKey == n->key)
             delNode = n;
     }
+	//parent=delnode's parent
 
     if (delNode != NULL) {
-        delNode->key = n->key;
+		AVLnode<T>* cur = delNode;
+		AVLnode<T>* tmp = delNode;
+		if (cur->left == NULL && cur->right == NULL) {
+			if (cur->parent->key > cur->key) {
+				cur->parent->left = NULL;
+			}
+			else {
+				cur->parent->right = NULL;
+			}
+			if (delKey == root->key) {
+				root = NULL;
+			}
+		}
+		else if (cur->left == NULL) {
+			if (cur->parent->key > cur->key) {
+				cur->parent->left = cur->right;
+			}
+			else {
+				cur->parent->right = cur->right;
+			}
+			cur->right->parent = cur->parent;
+			if (delKey == root->key)
+				root = cur->right;
+		}
+		else if (cur->right == NULL) {
+			if (cur->parent->key > cur->key) {
+				cur->parent->left = cur->left;
+			}
+			else {
+				cur->parent->right = cur->left;
+			}
+			cur->left->parent = cur->parent;
+			if (delKey == root->key) {
+				root = cur->left;
+			}
+		}
+		else {
+			cur = cur->left;
+			while (cur->right != NULL)
+				cur = cur->right;
+			delNode->key = cur->key;
+			cur->key = delKey;
+			deleteKey(delKey);
+		}
+		rebalance(parent);
 
-        child = n->left != NULL ? n->left : n->right;
 
-        if (root->key == delKey) {
-            root = child;
-        }
-        else {
-            if (parent->left == n) {
-                parent->left = child;
-            }
-            else {
-                parent->right = child;
-            }
+        //delNode->key = n->key;
 
-            rebalance(parent);
-        }
+        //child = n->left != NULL ? n->left : n->right;
+
+        //if (root->key == delKey) {
+        //    root = child;
+        //}
+        //else {
+        //    if (parent->left == n) {
+        //        parent->left = child;
+        //    }
+        //    else {
+        //        parent->right = child;
+        //    }
+
+        //    rebalance(parent);
+        //}
     }
 }
 
 template <class T>
-void AVLtree<T>::printBalance() {
-    printBalance(root);
-    std::cout << std::endl;
+void AVLtree<T>::printer() {
+    printer(root);
+    cout << endl;
 }
 
 int main(void)
@@ -248,16 +301,16 @@ int main(void)
     string cmd;
     int input;
     while (cin >> cmd) {
-        if (cmd == "insert") {
+        if (cmd == "INSERT") {
             cin >> input;
             t.insert(input);
         }
-        else if (cmd == "remove") {
+        else if (cmd == "REMOVE") {
             cin >> input;
             t.deleteKey(input);
         }
-        else {
-            t.printBalance();
+        else if(cmd=="PRINT"){
+            t.printer();
         }
     }
 }
